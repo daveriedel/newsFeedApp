@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         articleTitles = new ArrayList<>();
         articleURLS = new ArrayList<>();
 
-
+        String testGit;
 
             articles = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
             articles.execSQL("CREATE TABLE IF NOT EXISTS newArticles (title VARCHAR, url VARCHAR, articleID VARCHAR)");
