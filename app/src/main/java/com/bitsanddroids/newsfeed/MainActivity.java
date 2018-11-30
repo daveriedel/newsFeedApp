@@ -36,17 +36,21 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
         ArrayList<String> articleId = new ArrayList<>();
         articleTitles = new ArrayList<>();
         articleURLS = new ArrayList<>();
 
-        String testGit;
-        String nogEen;
+
 
             articles = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
             articles.execSQL("CREATE TABLE IF NOT EXISTS newArticles (title VARCHAR, url VARCHAR, articleID VARCHAR)");
 
-
+        try {
+            articles.execSQL("DELETE FROM newArticles");
+        } catch (Exception e){
+            e.printStackTrace();
+        }
 
 
         DownloadTask task = new DownloadTask();
@@ -96,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
                     numberOfItems = jsonArray.length();
                 }
 
-                for(int i = 0; i < numberOfItems; i++){
+                for(int i = 0; i < numberOfItems + 1; i++){
                     String articleId = jsonArray.getString(i);
                     String articleInfo ="";
                     url = new URL("https://hacker-news.firebaseio.com/v0/item/" + articleId + ".json?print=pretty");
@@ -115,9 +119,13 @@ public class MainActivity extends AppCompatActivity {
                     /*articleURLS.add(jsonObject.getString("url"));
                     articleTitles.add(jsonObject.getString("title"));*/
                     String title = jsonObject.getString("title");
+                    title = title.replaceAll("'", "''");
                     String articleUrl = jsonObject.getString("url");
-                    String selectSQL = "INSERT INTO newArticles(title, urls,articleID) VALUES ('"+title+"','"+articleUrl+""+articleId+"')";
+                    String selectSQL = "INSERT INTO newArticles(title, url, articleID) VALUES ('"+title+"','"+articleUrl+"','"+articleId+"')";
+                    Log.i("Debug","new entry");
+
                     articles.execSQL(selectSQL);
+
 
                 }
                 Log.i("titles", articleTitles.toString());
@@ -127,10 +135,13 @@ public class MainActivity extends AppCompatActivity {
                 int urlIndex = cursor.getColumnIndex("url");
 
                 cursor.moveToFirst();
-
+                int i = 0;
                 while (cursor != null){
+
                     Log.i("Title", cursor.getString(titleIndex));
                     Log.i("url", cursor.getString(urlIndex));
+                    Log.i("entry", String.valueOf(i));
+                    i++;
                     cursor.moveToNext();
                 }
 
