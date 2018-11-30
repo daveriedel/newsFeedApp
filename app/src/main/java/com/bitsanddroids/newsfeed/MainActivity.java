@@ -22,10 +22,10 @@ import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
-    ArrayList <String> articleTitles;
-    ArrayList <String> articleURLS;
+    ArrayList<String> articleTitles;
+    ArrayList<String> articleURLS;
     ListView titlesListView;
-    ArrayAdapter <String> arrayAdapter;
+    ArrayAdapter<String> arrayAdapter;
     SQLiteDatabase articles;
     //https://hacker-news.firebaseio.com/v0/item/126809.json?print=pretty  126809=ARTICLE ID RETURNS JSON DATA
 
@@ -35,20 +35,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-
-
         ArrayList<String> articleId = new ArrayList<>();
         articleTitles = new ArrayList<>();
         articleURLS = new ArrayList<>();
 
 
-
-            articles = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
-            articles.execSQL("CREATE TABLE IF NOT EXISTS newArticles (title VARCHAR, url VARCHAR, articleID VARCHAR)");
+        articles = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
+        articles.execSQL("CREATE TABLE IF NOT EXISTS newArticles (title VARCHAR, url VARCHAR, articleID VARCHAR)");
 
         try {
             articles.execSQL("DELETE FROM newArticles");
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -56,22 +53,19 @@ public class MainActivity extends AppCompatActivity {
         DownloadTask task = new DownloadTask();
         try {
             task.execute("https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty");
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
 
-
-
         titlesListView = findViewById(R.id.articlesListview);
-        arrayAdapter = new ArrayAdapter <>(this, android.R.layout.simple_list_item_1,articleTitles);
+        arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, articleTitles);
         titlesListView.setAdapter(arrayAdapter);
 
     }
 
 
-
-    protected class DownloadTask extends AsyncTask<String, Void, String>{
+    protected class DownloadTask extends AsyncTask<String, Void, String> {
 
         @Override
         protected String doInBackground(String... urls) {
@@ -86,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 InputStreamReader inputStreamReader = new InputStreamReader(in);
                 int data = inputStreamReader.read();
 
-                while (data != -1){
+                while (data != -1) {
                     char current = (char) data;
                     result += current;
                     data = inputStreamReader.read();
@@ -96,19 +90,19 @@ public class MainActivity extends AppCompatActivity {
 
                 int numberOfItems = 20;
 
-                if(jsonArray.length() < 20){
+                if (jsonArray.length() < 20) {
                     numberOfItems = jsonArray.length();
                 }
 
-                for(int i = 0; i < numberOfItems + 1; i++){
+                for (int i = 0; i < numberOfItems + 1; i++) {
                     String articleId = jsonArray.getString(i);
-                    String articleInfo ="";
+                    String articleInfo = "";
                     url = new URL("https://hacker-news.firebaseio.com/v0/item/" + articleId + ".json?print=pretty");
                     httpURLConnection = (HttpURLConnection) url.openConnection();
                     in = httpURLConnection.getInputStream();
                     inputStreamReader = new InputStreamReader(in);
                     data = inputStreamReader.read();
-                    while (data != -1){
+                    while (data != -1) {
                         char current = (char) data;
                         articleInfo += current;
                         data = inputStreamReader.read();
@@ -121,8 +115,8 @@ public class MainActivity extends AppCompatActivity {
                     String title = jsonObject.getString("title");
                     title = title.replaceAll("'", "''");
                     String articleUrl = jsonObject.getString("url");
-                    String selectSQL = "INSERT INTO newArticles(title, url, articleID) VALUES ('"+title+"','"+articleUrl+"','"+articleId+"')";
-                    Log.i("Debug","new entry");
+                    String selectSQL = "INSERT INTO newArticles(title, url, articleID) VALUES ('" + title + "','" + articleUrl + "','" + articleId + "')";
+                    Log.i("Debug", "new entry");
 
                     articles.execSQL(selectSQL);
 
@@ -130,13 +124,13 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Log.i("titles", articleTitles.toString());
                 Log.i("urls", articleURLS.toString());
-                Cursor cursor = articles.rawQuery("SELECT * FROM newArticles",null);
+                Cursor cursor = articles.rawQuery("SELECT * FROM newArticles", null);
                 int titleIndex = cursor.getColumnIndex("title");
                 int urlIndex = cursor.getColumnIndex("url");
 
                 cursor.moveToFirst();
                 int i = 0;
-                while (cursor != null){
+                while (cursor != null) {
 
                     Log.i("Title", cursor.getString(titleIndex));
                     Log.i("url", cursor.getString(urlIndex));
@@ -146,22 +140,16 @@ public class MainActivity extends AppCompatActivity {
                 }
 
 
-
-
-
-
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-            Log.i("id's",result);
+            Log.i("id's", result);
             return null;
         }
 
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-
-
 
 
         }
