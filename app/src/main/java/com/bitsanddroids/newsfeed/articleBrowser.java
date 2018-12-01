@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import java.net.URL;
 
 
 public class articleBrowser extends AppCompatActivity {

@@ -21,7 +21,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
         articles = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
         articles.execSQL("CREATE TABLE IF NOT EXISTS newArticles (title VARCHAR, url VARCHAR, articleID VARCHAR)");
 
+        //delete content of table to avoid piling of articles
         try {
             articles.execSQL("DELETE FROM newArticles");
         } catch (Exception e) {
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         titlesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getApplicationContext(),articleBrowser.class);
+                Intent intent = new Intent(getApplicationContext(), articleBrowser.class);
                 intent.putExtra("url", articleURLS.get(position));
                 startActivity(intent);
             }
@@ -82,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
             URL url;
             HttpURLConnection httpURLConnection;
 
+            //download JSONArray from API
             try {
                 url = new URL(urls[0]);
                 httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -103,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
                     numberOfItems = jsonArray.length();
                 }
 
+                //download article info from the article ID's
                 for (int i = 0; i < numberOfItems + 1; i++) {
                     String articleId = jsonArray.getString(i);
                     String articleInfo = "";
@@ -116,44 +119,36 @@ public class MainActivity extends AppCompatActivity {
                         articleInfo += current;
                         data = inputStreamReader.read();
                     }
-                    Log.i("ArticleInfo", articleInfo);
+                    //convert downloaded info to JSONObject
 
                     JSONObject jsonObject = new JSONObject(articleInfo);
-                    /*articleURLS.add(jsonObject.getString("url"));
-                    articleTitles.add(jsonObject.getString("title"));*/
+
                     String title = jsonObject.getString("title");
                     title = title.replaceAll("'", "''");
                     String articleUrl = jsonObject.getString("url");
 
                     String selectSQL = "INSERT INTO newArticles(title, url, articleID) VALUES ('" + title + "','" + articleUrl + "','" + articleId + "')";
-                    Log.i("Debug", "new entry");
+
 
                     articles.execSQL(selectSQL);
 
 
                 }
 
-                //Debug purposes
-                //Log.i("titles", articleTitles.toString());
-                //Log.i("urls", articleURLS.toString());
-
                 Cursor cursor = articles.rawQuery("SELECT * FROM newArticles", null);
                 int titleIndex = cursor.getColumnIndex("title");
                 int urlIndex = cursor.getColumnIndex("url");
 
                 cursor.moveToFirst();
-
+                // move trough SQLite Table to add article info
                 while (cursor != null) {
-
-                    //Debug purposes
-                    //Log.i("Title", cursor.getString(titleIndex));
-                    //Log.i("url", cursor.getString(urlIndex));
 
                     articleTitles.add(cursor.getString(titleIndex));
                     articleURLS.add(cursor.getString(urlIndex));
 
                     cursor.moveToNext();
                 }
+                cursor.close();
 
 
             } catch (Exception e) {
@@ -167,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-
+            //put adapter to display the titles
             titlesListView.setAdapter(arrayAdapter);
 
 
