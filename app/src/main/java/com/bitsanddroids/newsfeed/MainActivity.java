@@ -2,11 +2,14 @@ package com.bitsanddroids.newsfeed;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -23,7 +26,7 @@ import java.util.Arrays;
 public class MainActivity extends AppCompatActivity {
 
     ArrayList<String> articleTitles;
-    ArrayList<String> articleURLS;
+    static ArrayList<String> articleURLS;
     ListView titlesListView;
     ArrayAdapter<String> arrayAdapter;
     SQLiteDatabase articles;
@@ -35,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-        ArrayList<String> articleId = new ArrayList<>();
         articleTitles = new ArrayList<>();
         articleURLS = new ArrayList<>();
 
@@ -53,14 +55,21 @@ public class MainActivity extends AppCompatActivity {
         DownloadTask task = new DownloadTask();
         try {
             task.execute("https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty");
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
         titlesListView = findViewById(R.id.articlesListview);
         arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, articleTitles);
-        titlesListView.setAdapter(arrayAdapter);
+        titlesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getApplicationContext(),articleBrowser.class);
+                intent.putExtra("url", articleURLS.get(position));
+                startActivity(intent);
+            }
+        });
+
 
     }
 
@@ -115,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
                     String title = jsonObject.getString("title");
                     title = title.replaceAll("'", "''");
                     String articleUrl = jsonObject.getString("url");
+
                     String selectSQL = "INSERT INTO newArticles(title, url, articleID) VALUES ('" + title + "','" + articleUrl + "','" + articleId + "')";
                     Log.i("Debug", "new entry");
 
@@ -122,20 +132,26 @@ public class MainActivity extends AppCompatActivity {
 
 
                 }
-                Log.i("titles", articleTitles.toString());
-                Log.i("urls", articleURLS.toString());
+
+                //Debug purposes
+                //Log.i("titles", articleTitles.toString());
+                //Log.i("urls", articleURLS.toString());
+
                 Cursor cursor = articles.rawQuery("SELECT * FROM newArticles", null);
                 int titleIndex = cursor.getColumnIndex("title");
                 int urlIndex = cursor.getColumnIndex("url");
 
                 cursor.moveToFirst();
-                int i = 0;
+
                 while (cursor != null) {
 
-                    Log.i("Title", cursor.getString(titleIndex));
-                    Log.i("url", cursor.getString(urlIndex));
-                    Log.i("entry", String.valueOf(i));
-                    i++;
+                    //Debug purposes
+                    //Log.i("Title", cursor.getString(titleIndex));
+                    //Log.i("url", cursor.getString(urlIndex));
+
+                    articleTitles.add(cursor.getString(titleIndex));
+                    articleURLS.add(cursor.getString(urlIndex));
+
                     cursor.moveToNext();
                 }
 
@@ -143,13 +159,16 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Log.i("id's", result);
+
+
             return null;
         }
 
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
+
+            titlesListView.setAdapter(arrayAdapter);
 
 
         }
